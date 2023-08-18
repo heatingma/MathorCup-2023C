@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import pdb
 
-def problem_1():
+def divide_data():
     """
     divide data to 12 lines
     """
@@ -20,4 +20,4 @@ def problem_1():
     
     
 if __name__ == "__main__":
-    problem_1()
+    divide_data()

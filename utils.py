@@ -1,37 +1,126 @@
+import numpy as np
+
+
 class PRODUCT:
-    def __init__(self, name, need_time, product_line):
+    def __init__(self, name, need_time, deadline, product_line):
         self.name = name
         self.need_time = need_time
+        self.deadline = deadline
         self.product_line = product_line
+        self.rm_time = deadline - need_time
         self.num = 0
-    
+        self.message = "name, need_time, deadline, product_line, rm_time, num"
+        
     def add_num(self):
         self.num += 1
         
     def finished(self, time):
         self.finished_time = time
+        self.message += ", finished_time"
+        
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.message})"       
     
     
 class ORDER:
     def __init__(self, id, deadline):
-        self.order_id = id
+        self.id = id
         self.deadline = deadline
         self.products = dict()
-    
-    def add_product(self, product_name, product:PRODUCT):
-        self.products[product_name] = product
+        self.rm_time = None
+        self.begin_time = None
+        self.finished = False
+        self.message = "id, deadline, products, begin_time, rm_time, finished"
+        
+    def add_product(self, product:PRODUCT):
+        name = product.name
+        if name not in self.products.keys():
+            self.products[name] = product
+            self.products[name].add_num()
+        else:
+            self.products[name].add_num()
+        
+        if self.rm_time is None:
+            self.rm_time = product.rm_time
+        else:
+            self.rm_time = min(self.rm_time, product.rm_time)
 
-    def cal_overtime(self):
-        self.latest_time = 0
+    def begin_order(self, time):
+        self.begin_time = time
+    
+    def begin_work(self, num, time):
+        max_num = 0
+        for name, product in self.products.items():
+            product: PRODUCT
+            if product.num == 0:
+                continue
+            if max_num < product.num:
+                max_num = product.num
+                max_name = name
+        num = min(max_num, num)
+        product = self.products[max_name]
+        finish_time = time + product.need_time
+        for _ in range(num):
+            self.finish_product(product, finish_time)
+        return finish_time, int(self.finished)
+            
+    def finish_product(self, product:PRODUCT, time):
+        self.products[product.name].num -= 1
+        if self.products[product.name].num == 0:
+            self.products[product.name].finished(time)
+        self.finished = True
         for product in self.products.values():
-            self.latest_time = max(self.latest_time, product.finished_time)
-        self.overtime = self.latest_time - self.deadline
+            if product.num > 0:
+                self.finished = False
+          
+    def cal_overtime(self):
+        self.finished_time = 0
+        for product in self.products.values():
+            self.finished_time = max(self.finished_time, product.finished_time)
+        self.overtime = max(self.finished_time - self.deadline , 0)
+        self.message += ", fnished_time, overtime"
+    
+    def get_msg(self):
+        self.cal_overtime()
+        return [self.id, self.begin_time, self.finished_time, self.deadline, self.overtime]
+    
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.message})"                
             
             
 class ORDERS:
     def __init__(self):
         self.orders_dict = dict()
+        
+    def add_order(self, order:ORDER):
+        self.orders_dict[order.id] = order
     
-    def add_order(self, order_id, order:ORDER):
-        self.orders_dict[order_id] = order
+    def print(self):
+        print_msg = list()
+        for order in self.orders_dict.values():
+            order: ORDER
+            print_msg.append(order.get_msg())
+        return print_msg
+    
+    def __repr__(self):
+        message = "orders_dict"
+        return f"{self.__class__.__name__}({message})"    
+    
 
+def get_orders(data: np.ndarray):
+    orders = ORDERS()
+    cur_order = None
+    cur_id = None
+    for order_data in data:
+        product = PRODUCT(*order_data[1:5])
+        if order_data[0] != cur_id:
+            if cur_order is not None:
+                orders.add_order(cur_order)
+            cur_id = order_data[0]
+            cur_order = ORDER(cur_id, order_data[3])
+            cur_order.add_product(product)
+        else:
+            cur_order.add_product(product)
+    return orders
+
+ 
