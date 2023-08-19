@@ -1,13 +1,13 @@
 import numpy as np
 import pandas as pd
 from utils import get_orders
-from models import dmlf, mlf, derf, erf, dmsf, msf
+from models import dmlf, mlf, derf, erf, meonf
 
 
 work_num = [1, 2, 1, 3, 1, 1, 2, 1, 1, 3, 1, 1]
 
 def problem_1():
-    models = {'dmlf': dmlf, 'dmsf': dmsf, 'derf': derf, 'mlf': mlf, 'msf': msf, 'erf': erf}
+    models = {'meonf': meonf, 'dmlf': dmlf,'derf': derf, 'mlf': mlf, 'erf': erf}
     # solve 
     for name, model in models.items():
         for i in range(12):
