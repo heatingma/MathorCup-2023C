@@ -43,7 +43,7 @@ class ORDER:
         self.begin_time = None
         self.finished = False
         self.sum_time = None
-        self.left_time = None
+        self.left_time = None        
         self.message = "id, deadline, products, begin_time, "
         self.message += "left_time, rm_time, finished, sum_time"
         
@@ -56,6 +56,9 @@ class ORDER:
             self.products[name].add_num()
         self.cal_time()
         
+    def add_worker(self):
+        pass
+    
     def begin_order(self, time):
         self.begin_time = time
     
@@ -128,6 +131,15 @@ class ORDERS:
         return f"{self.__class__.__name__}({message})"    
     
 
+class WORKER:
+    def __init__(self, id, cap):
+        self.id = id
+        self.cap = cap
+        self.times = [0 for _ in range(len(cap))]
+        
+
+
+
 def get_orders(data: np.ndarray):
     orders = ORDERS()
     cur_order = None
@@ -144,4 +156,5 @@ def get_orders(data: np.ndarray):
             cur_order.add_product(product)
     return orders
 
- 
+
+
