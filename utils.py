@@ -1,5 +1,7 @@
 import numpy as np
+import math
 
+WORK = [1, 2, 1, 3, 1, 1, 2, 1, 1, 3, 1, 1]
 
 class PRODUCT:
     def __init__(self, name, need_time, deadline, product_line):
@@ -7,13 +9,23 @@ class PRODUCT:
         self.need_time = need_time
         self.deadline = deadline
         self.product_line = product_line
-        self.rm_time = deadline - need_time
+        self.line_work = WORK[int(product_line[-2:]) - 1]
         self.num = 0
-        self.message = "name, need_time, deadline, product_line, rm_time, num"
+        self.all_need_time = None
+        self.message = "name, need_time, deadline, product_line, all_need_time, num"
+        
+    def cal_all_need_time(self):
+        turn = math.ceil(self.num / self.line_work)
+        self.all_need_time = turn * self.need_time   
         
     def add_num(self):
         self.num += 1
+        self.cal_all_need_time()
         
+    def finished_part(self):
+        self.num -= 1
+        self.cal_all_need_time()
+    
     def finished(self, time):
         self.finished_time = time
         self.message += ", finished_time"
@@ -30,7 +42,10 @@ class ORDER:
         self.rm_time = None
         self.begin_time = None
         self.finished = False
-        self.message = "id, deadline, products, begin_time, rm_time, finished"
+        self.sum_time = None
+        self.left_time = None
+        self.message = "id, deadline, products, begin_time, "
+        self.message += "left_time, rm_time, finished, sum_time"
         
     def add_product(self, product:PRODUCT):
         name = product.name
@@ -39,12 +54,8 @@ class ORDER:
             self.products[name].add_num()
         else:
             self.products[name].add_num()
+        self.cal_time()
         
-        if self.rm_time is None:
-            self.rm_time = product.rm_time
-        else:
-            self.rm_time = min(self.rm_time, product.rm_time)
-
     def begin_order(self, time):
         self.begin_time = time
     
@@ -65,14 +76,23 @@ class ORDER:
         return finish_time, int(self.finished)
             
     def finish_product(self, product:PRODUCT, time):
-        self.products[product.name].num -= 1
+        self.products[product.name].finished_part()
         if self.products[product.name].num == 0:
             self.products[product.name].finished(time)
         self.finished = True
         for product in self.products.values():
             if product.num > 0:
                 self.finished = False
-          
+        self.cal_time()
+    
+    def cal_time(self):
+        all_need_time = 0
+        for product in self.products.values():
+            product: PRODUCT
+            all_need_time += product.all_need_time
+        self.rm_time = self.deadline - all_need_time
+        self.left_time = all_need_time
+                 
     def cal_overtime(self):
         self.finished_time = 0
         for product in self.products.values():
@@ -82,7 +102,7 @@ class ORDER:
     
     def get_msg(self):
         self.cal_overtime()
-        return [self.id, self.begin_time, self.finished_time, self.deadline, self.overtime]
+        return [self.id, self.begin_time, self.finished_time, self.deadline, self.overtime, self.sum_time]
     
     def __repr__(self):
         return f"{self.__class__.__name__}({self.message})"                
@@ -94,6 +114,7 @@ class ORDERS:
         
     def add_order(self, order:ORDER):
         self.orders_dict[order.id] = order
+        order.sum_time = order.deadline - order.rm_time
     
     def print(self):
         print_msg = list()
