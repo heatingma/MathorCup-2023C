@@ -6,7 +6,7 @@ import pulp
 #             Models for Problem 1            #
 ###############################################
 
-def meonf(orders:ORDERS, work_num):
+def meonf(orders:ORDERS):
     """
     Min Excpeted Overtime Numbers First
     """
@@ -49,7 +49,7 @@ def meonf(orders:ORDERS, work_num):
         # find the order to achieve the minimal expected overtime numbers
         order_id = None
         min_overtime_nums = None
-        min_left_time = None
+        min_sum_time = None
         
         for order in orders_cache:
             order: ORDER
@@ -61,19 +61,17 @@ def meonf(orders:ORDERS, work_num):
             if min_overtime_nums is None or nums < min_overtime_nums:
                 min_overtime_nums = nums
                 order_id = order.id
-                min_left_time = order.left_time
-            elif nums == min_overtime_nums and min_left_time > order.left_time:
+                min_sum_time = order.sum_time
+            elif nums == min_overtime_nums and min_sum_time > order.sum_time:
                 order_id = order.id
-                min_left_time = order.left_time                
+                min_sum_time = order.sum_time                
                  
         order = orders.orders_dict[order_id]
         order: ORDER
         
         # begin work
-        if order.begin_time is None:
-            order.begin_order(time)
-        time, num = order.begin_work(work_num, time)
-        finished += num
+        time = order.begin_order(time)
+        finished += 1
         
     return orders    
 
@@ -89,9 +87,9 @@ def cal_overtime_nums(orders_cache, vir_time):
     return nums
 
 
-def dmlf(orders: ORDERS, work_num):
+def dmsf(orders: ORDERS):
     """
-    Dealine & Min Left Time First
+    Dealine & Min Sum Time First
     """
     num_orders = len(orders.orders_dict)
     finished = 0
@@ -99,7 +97,7 @@ def dmlf(orders: ORDERS, work_num):
     
     while(finished != num_orders):
         min_deadline = None
-        min_left_time = None
+        min_sum_time = None
         order_id = None
         for id, order in orders.orders_dict.items():
             order: ORDER
@@ -107,25 +105,23 @@ def dmlf(orders: ORDERS, work_num):
                 continue
             if min_deadline is None or min_deadline > order.deadline:
                 min_deadline = order.deadline
-                min_left_time = order.left_time
+                min_sum_time = order.sum_time
                 order_id = id
-            elif min_deadline == order.deadline and min_left_time > order.left_time:
-                min_left_time = order.left_time
+            elif min_deadline == order.deadline and min_sum_time > order.sum_time:
+                min_sum_time = order.sum_time
                 order_id = id
                     
         order = orders.orders_dict[order_id]
         order: ORDER
         # begin work
-        if order.begin_time is None:
-            order.begin_order(time)
-        time, num = order.begin_work(work_num, time)
-        finished += num
+        time = order.begin_order(time)
+        finished += 1
     return orders
 
 
-def mlf(orders: ORDERS, work_num):
+def msf(orders: ORDERS):
     """
-    Min Left Time First
+    Min Sum Time First
     """
     num_orders = len(orders.orders_dict)
     finished = 0
@@ -133,26 +129,24 @@ def mlf(orders: ORDERS, work_num):
     
     while(finished != num_orders):
         # find the minimal remaining time's order
-        min_left_time = None
+        min_sum_time = None
         order_id = None
         for id, order in orders.orders_dict.items():
             order: ORDER
             if order.finished:
                 continue
-            if min_left_time is None or min_left_time > order.left_time:
-                min_left_time = order.left_time
+            if min_sum_time is None or min_sum_time > order.sum_time:
+                min_sum_time = order.sum_time
                 order_id = id
         order = orders.orders_dict[order_id]
         order: ORDER
         # begin work
-        if order.begin_time is None:
-            order.begin_order(time)
-        time, num = order.begin_work(work_num, time)
-        finished += num
+        time = order.begin_order(time)
+        finished += 1
     return orders
 
 
-def derf(orders: ORDERS, work_num):
+def derf(orders: ORDERS):
     """
     Dealine & Earliest Remaining Time First
     """
@@ -180,14 +174,12 @@ def derf(orders: ORDERS, work_num):
         order = orders.orders_dict[order_id]
         order: ORDER
         # begin work
-        if order.begin_time is None:
-            order.begin_order(time)
-        time, num = order.begin_work(work_num, time)
-        finished += num
+        time = order.begin_order(time)
+        finished += 1
     return orders
 
 
-def erf(orders: ORDERS, work_num):
+def erf(orders: ORDERS):
     """
     Earliest Remaining Time First
     """
@@ -209,10 +201,8 @@ def erf(orders: ORDERS, work_num):
         order = orders.orders_dict[order_id]
         order: ORDER
         # begin work
-        if order.begin_time is None:
-            order.begin_order(time)
-        time, num = order.begin_work(work_num, time)
-        finished += num
+        time = order.begin_order(time)
+        finished += 1
     return orders
 
 
@@ -244,3 +234,9 @@ def lip(work_num, workers, times):
         for j in range(12):
             result[i][j] = pulp.value(x[i][j]) 
     return result    
+
+
+###############################################
+#             Models for Problem 3            #
+###############################################
+

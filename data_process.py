@@ -33,7 +33,7 @@ def get_result_from_problem_1():
     np.save("processed_data/problem_2/overtime-sumtime.npy", data)
     
 
-def get_workers():
+def get_workers_skill():
     data = pd.read_excel("data/2 - 生产员工技能表.xlsx", usecols=np.r_[1:13])
     data = np.array(data)[1:]
     swap = {'E': 1.0, 'O': 0.8, 'N': 0.0}
@@ -47,4 +47,4 @@ def get_workers():
 if __name__ == "__main__":
     divide_data()
     get_result_from_problem_1()
-    get_workers()
+    get_workers_skill()
