@@ -20,9 +20,17 @@ def divide_data():
 
 
 def get_result_from_problem_1():
-    data = pd.read_excel("result/problem_1/results.xlsx")
+    data = pd.read_excel("result/problem_1/results-overtime.xlsx")
     data = np.array(data)[0][2:-1].astype(int)
-    np.save("processed_data/problem_2/overtimes.npy", data)
+    np.save("processed_data/problem_2/overtime.npy", data)
+
+    data = pd.read_excel("result/problem_1/results-sumtime.xlsx")
+    data = np.array(data)[0][2:].astype(int)
+    np.save("processed_data/problem_2/sumtime.npy", data)    
+    
+    data = pd.read_excel("result/problem_1/results-add-sumtime.xlsx")
+    data = np.array(data)[0][2:].astype(int)
+    np.save("processed_data/problem_2/overtime-sumtime.npy", data)
     
 
 def get_workers():

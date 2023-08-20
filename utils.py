@@ -3,6 +3,12 @@ import math
 
 WORK = [1, 2, 1, 3, 1, 1, 2, 1, 1, 3, 1, 1]
 
+
+class WORKER:
+    def __init__(self, id, cap):
+        self.id = id
+        self.cap = cap
+        
 class PRODUCT:
     def __init__(self, name, need_time, deadline, product_line):
         self.name = name
@@ -43,7 +49,9 @@ class ORDER:
         self.begin_time = None
         self.finished = False
         self.sum_time = None
-        self.left_time = None        
+        self.left_time = None  
+        self.workers = list()
+        self.workers_caps = list()      
         self.message = "id, deadline, products, begin_time, "
         self.message += "left_time, rm_time, finished, sum_time"
         
@@ -56,8 +64,9 @@ class ORDER:
             self.products[name].add_num()
         self.cal_time()
         
-    def add_worker(self):
-        pass
+    def add_worker(self, work: WORKER):
+        self.workers.append(work)
+        self.workers_caps.append(work.cap)
     
     def begin_order(self, time):
         self.begin_time = time
@@ -131,14 +140,7 @@ class ORDERS:
         return f"{self.__class__.__name__}({message})"    
     
 
-class WORKER:
-    def __init__(self, id, cap):
-        self.id = id
-        self.cap = cap
-        self.times = [0 for _ in range(len(cap))]
-        
-
-
+    
 
 def get_orders(data: np.ndarray):
     orders = ORDERS()

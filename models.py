@@ -1,5 +1,10 @@
 from utils import ORDERS, ORDER, PRODUCT
-import pdb
+import numpy as np
+import pulp
+
+###############################################
+#             Models for Problem 1            #
+###############################################
 
 def meonf(orders:ORDERS, work_num):
     """
@@ -210,3 +215,32 @@ def erf(orders: ORDERS, work_num):
         finished += num
     return orders
 
+
+###############################################
+#             Models for Problem 2            #
+###############################################
+
+def lip(work_num, workers, times):
+    """
+    Linear Integer Programming
+    """
+    ots = times / np.sum(times)
+    # create problem
+    problem = pulp.LpProblem("Worker Allocation", pulp.LpMaximize)
+    # target
+    x = [[pulp.LpVariable(f"x_{i}_{j}", lowBound=0, upBound=1, cat=pulp.LpInteger) for j in range(12)] for i in range(20)]
+    # object
+    object = pulp.lpSum(ots[j] * x[i][j] * workers[i][j]  for i in range(20) for j in range(12))
+    problem += object
+    # constraint
+    for i in range(20):
+        problem += pulp.lpSum(x[i][j] for j in range(12)) <= 1
+    for j in range(12):
+        problem += pulp.lpSum(x[i][j] for i in range(20)) <=  work_num[j] 
+    # get result
+    problem.solve()
+    result = np.zeros(shape=(20, 12))
+    for i in range(20):
+        for j in range(12):
+            result[i][j] = pulp.value(x[i][j]) 
+    return result    
