@@ -1,17 +1,20 @@
 import numpy as np
 import math
 from itertools import permutations
-import pdb
 import copy
-
+import pdb
 WORK = np.array([1, 2, 1, 3, 1, 1, 2, 1, 1, 3, 1, 1])
 THEORY = np.array([450, 675, 450, 675, 450, 450, 675, 450, 675, 675, 675, 450])
 PRACTICE = np.array([900, 1125, 900, 1125, 900, 900, 1125, 900, 1125, 1125, 1125, 900])
 EXCELLENT = PRACTICE + 150 * 60
-EXCELLENT_SCORE = 1000
-OUTSTANDING_SCORE = 500
-THEORY_SCORE = 50
-SCORE = 0.10
+BADTIME = 100
+EXCELLENT_SCORE = 500
+OUTSTANDING_SCORE = 1000
+THEORY_SCORE = 100
+N_O_SCORE = 0.3
+O_E_SCORE = 0.2
+SCORE = 0.1
+PRIO = 50
 
 ###############################################
 #                 Utils Class                 #
@@ -22,7 +25,7 @@ class WORKER:
     def __init__(self, id, cap: np.ndarray):
         self.id = id
         self.cap = cap
-        self.ori_cap = cap
+        self.ori_cap = copy.deepcopy(cap)
         self.work = False
         self.next_not_work_time = None
         self.work_line = None
@@ -71,12 +74,13 @@ class WORKER:
         self.teach_ratio[line_id] = 1
     
     def add_teacher(self, teacher, line_id):
+        self.work_line = line_id
         self.teacher = teacher
         teacher.begin_teach(line_id)
         self.teacher_cap[line_id] = teacher.cap[line_id] * 0.6
     
-    def del_teacher(self, line_id):
-        self.teacher.end_teach(line_id)
+    def del_teacher(self):
+        self.teacher.end_teach(self.work_line)
         
     def update_state(self):
         if self.work == True:
@@ -88,17 +92,17 @@ class WORKER:
         ept_prac = self.prac[line_id] + prac_time
         if self.cap[line_id] == 0.8:
             if ept_prac >= EXCELLENT[line_id]:
-                return prac_time*SCORE + EXCELLENT_SCORE
+                return prac_time*O_E_SCORE + EXCELLENT_SCORE
             else:
-                return prac_time*SCORE
+                return prac_time*O_E_SCORE
         else:
             if ept_prac >= PRACTICE[line_id]:
-                return prac_time*SCORE + OUTSTANDING_SCORE
+                return prac_time*N_O_SCORE + OUTSTANDING_SCORE
             else:
-                return prac_time*SCORE
+                return prac_time*N_O_SCORE
             
     def ept_theo_improve(self, theo_time, line_id):
-        if self.theory[line_id] == True:
+        if self.theo[line_id] == True:
             return 0
         ept_prac = self.theo[line_id] + theo_time
         if ept_prac >= THEORY[line_id]:
@@ -189,17 +193,20 @@ class PRODUCT:
         if self.workers is None:
             turn = math.ceil(self.num / self.workstations)
         elif self.workstations == 1:
-            cap = self.workers[0].cap[self.product_line] / \
-                self.workers[0].teach_ratio[self.product_line] + \
-                self.workers[0].teacher_cap[self.product_line]
+            if self.workers[0].cap[self.product_line] == 0:
+                cap = self.workers[0].teacher_cap[self.product_line]
+            else:
+                cap = self.workers[0].cap[self.product_line]
             turn = self.num / cap
         else:
             turns_list = list()
             for worker in self.workers:
                 worker: WORKER
-                turns_list.append(1 / worker.cap[self.product_line] / \
-                    worker.teach_ratio[self.product_line] + \
-                    worker.teacher_cap[self.product_line])
+                if worker.cap[self.product_line] == 0:
+                    add_data = 1 / worker.teacher_cap[self.product_line]
+                else:
+                    add_data = 1 / worker.cap[self.product_line]
+                turns_list.append(add_data)
             turns_list = np.array(turns_list)
             begin = np.array([0.0 for _ in range(len(self.workers))])
             num = self.num
@@ -322,6 +329,7 @@ class LINE:
         self.all_orders = list()
         self.cur_deadline = 0
         self.orders_num = 0
+        self.cur_workers = None
     
     def add_order(self, order:ORDER):
         self.finished = False
@@ -385,6 +393,7 @@ class LINE:
         for worker in workers:
             worker: WORKER
             worker.begin_work(line_id, finshed_time)
+        self.cur_workers = workers
     
     def check_busy(self, time):
         if self.next_not_busy_time is None:
@@ -450,7 +459,7 @@ class LINES:
             line: LINE
             line.check_busy(time)
             if line.busy == False and line.finished == False:
-                self.times[line.id] += 100
+                self.times[line.id] += PRIO
                 self.get_lines_priority()
             if line.finished == False:
                 self.finished = False
@@ -464,44 +473,85 @@ class LINES:
                 order = line.find_next_order(time)
                 free_workers = self.workers.get_free_worker()
                 chooses = list(permutations(free_workers, int(WORK[line_id])))
-                best_score = None
-                best_choose = None
                 min_sum_time = order.sum_time
+                best_choose = line.cur_workers
+                best_score, _ = self.get_score(order, best_choose, line_id, min_sum_time)
+                best_teachers = None
                 for choose in chooses:
                     if check_theo(choose, line_id) == False:
                         continue
-                    n_nums, n_workers = cal_n_nums(choose, line_id)
-                    if n_nums != 0:
-                        teachers, tea_num = find_teachers(choose, self.workers, n_nums, line_id)
-                        for i in range(tea_num):
-                            n_workers[i].add_teacher(teachers[i], line_id)
-                    copy_order = copy.deepcopy(order)
-                    copy_order.change_workers(choose)
-                    bad_time = min_sum_time - copy_order.sum_time
-                    ipv_score = 0
-                    for worker in choose:
-                        worker: WORKER
-                        ipv_score += worker.ept_prac_improve(copy_order.sum_time, line_id)
-                    if n_nums != 0:
-                        for i in range(tea_num):
-                            n_workers[i].del_teacher(teachers[i])
-                            ipv_score -= teachers[i].ept_theo_improve(copy_order.sum_time, line_id)
-                    score = ipv_score - bad_time
-                    if best_score is None or score > best_score:
+                    score, teachers = self.get_score(order, choose, line_id, min_sum_time)
+                    if score is None:
+                        continue
+                    if best_choose is None or score > best_score:
                         best_score = score
                         best_choose = choose
+                        best_teachers = teachers
                 if best_choose is None:
                     continue
+                if best_teachers is not None:
+                    for i, teacher in enumerate(best_teachers):
+                        best_choose[i].add_teacher(teacher, line_id)
                 line.begin_next_order(order.id, time, best_choose, line_id)
                 line.check_busy(time)
-                
+    
+    def get_score(self, order, choose, line_id, min_sum_time):
+        n_nums, n_workers = cal_n_nums(choose, line_id)
+        teachers = None
+        if n_nums != 0:
+            teachers, tea_num = find_teachers(choose, self.workers, n_nums, line_id)
+            if tea_num != n_nums:
+                return None, None
+            for i in range(tea_num):
+                n_workers[i].add_teacher(teachers[i], line_id)
+        copy_order = copy.deepcopy(order)
+        copy_order.change_workers(choose)
+        bad_time = (min_sum_time - copy_order.sum_time) * BADTIME
+        ipv_score = 0
+        for worker in choose:
+            worker: WORKER
+            ipv_score += worker.ept_prac_improve(copy_order.sum_time, line_id)
+        if n_nums != 0:
+            for i in range(tea_num):
+                n_workers[i].del_teacher()
+                ipv_score -= teachers[i].ept_theo_improve(copy_order.sum_time, line_id)
+        score = ipv_score - bad_time
+        return score, teachers
+    
     def theory(self):
         free_workers = self.workers.get_free_worker()
-        for worker in free_workers:
-            worker: WORKER
-            for i in range(12):
-                worker.theory(i)
-    
+        for line_id in self.lines_priority:
+            line_id = int(line_id)
+            teachers_list = list()
+            students_list = list()
+            if len(free_workers) == 0 or len(free_workers) == 1:
+                break
+            for worker in free_workers:
+                worker: WORKER
+                if worker.cap[line_id] != 0:
+                    teachers_list.append(worker)
+                if worker.finish_theory[line_id] == False:
+                    students_list.append(worker)
+            len_tea = len(teachers_list)
+            len_stu = len(students_list)
+            if len_tea >= len_stu:
+                for student in students_list:
+                    student: WORKER
+                    student.theory(line_id)
+                    free_workers.remove(student)
+                    tea = worest_tea(teachers_list)
+                    free_workers.remove(tea)
+                    teachers_list.remove(tea)
+            else:
+                for teacher in teachers_list:
+                    teacher: WORKER
+                    stu = best_stu(students_list, line_id)
+                    stu.theory(line_id)
+                    students_list.remove(stu)
+                    free_workers.remove(stu)
+                    free_workers.remove(teacher)
+                    
+                
     def get_msg(self):
         data = list()
         for line in self.lines_dict.values():
@@ -530,6 +580,30 @@ def check_theo(workers, line_id):
     return flag
 
 
+def best_stu(stu_list:list, line_id):
+    best_stu = None
+    best_cap = None
+    for stu in stu_list:
+        stu: WORKER
+        cap =  np.sum(stu.cap[line_id])
+        if best_cap is None or cap > best_cap:
+            best_cap = cap
+            best_stu = stu
+    return best_stu
+
+
+def worest_tea(tea_list:list):
+    worest_tea = None
+    worest_cap = None
+    for tea in tea_list:
+        tea: WORKER
+        cap =  np.sum(tea.cap)
+        if worest_cap is None or cap < worest_cap:
+            worest_cap = cap
+            worest_tea = tea
+    return worest_tea
+    
+    
 def find_teachers(cur_workers, all_workers:WORKERS, num, line_id):
     free_workers = list()
     for worker in all_workers.workers_dict.values():

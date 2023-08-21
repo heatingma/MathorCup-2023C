@@ -97,11 +97,17 @@ def problem_3():
     rdf.to_excel("result/problem_3/results_orders.xlsx")
     
     worker_update = np.array(lines.workers.get_msg())
+    update = worker_update[:, 13:25] - worker_update[:, 1:13]
+    worker_update = np.concatenate([worker_update, update], axis=1)
+    
     rdf = pd.DataFrame(worker_update, columns=['工人ID', 'Line01', 'Line02', \
         'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
         'Line09', 'Line10', 'Line11', 'Line12', 'Line01', 'Line02', \
         'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
+        'Line09', 'Line10', 'Line11', 'Line12', 'Line01', 'Line02', \
+        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
         'Line09', 'Line10', 'Line11', 'Line12'])
+    rdf.to_excel("result/problem_3/worker_update.xlsx")
     
     worker_update = np.array(lines.workers.get_msg_2())
     rdf = pd.DataFrame(worker_update, columns=['工人ID', 'Line01', 'Line02', \
