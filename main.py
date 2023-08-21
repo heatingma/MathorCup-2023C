@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from utils import get_orders, get_workers
+from utils import get_orders, get_lines, get_workers
 from models import dmsf, msf, derf, erf, meonf, lip
 
 
@@ -74,15 +74,50 @@ def problem_2():
     rdf.to_excel("result/problem_2/assign_results.xlsx")
 
 
+
 def problem_3():
-    workers = np.load("processed_data/problem_2/workers.npy", allow_pickle=True)
-    workers = get_workers(workers)
+    workers_data = np.load("processed_data/problem_2/workers.npy", allow_pickle=True)
+    workers = get_workers(workers_data)
+    lines = get_lines(workers)
+    time = 0
+    assign = pd.read_excel("result/problem_2/assign_results.xlsx", usecols=[3, 5, 7])
+    assign = np.array(assign).astype(int)
+    while lines.finished == False:  
+        if time == 0:
+            lines.update_state(time)
+            lines.time_zero(assign)
+            time += 1
+        else:          
+            lines.update_state(time)
+            lines.next_orders(time)
+            time += 1 
+
+    rdf = pd.DataFrame(lines.get_msg(), columns=['产线', '订单ID', '开始时间', '结束时间', '截止时间', \
+        '超时时间', '总耗时', '工人1', '工人2', '工人3'])
+    rdf.to_excel("result/problem_3/results_orders.xlsx")
+    
+    worker_update = np.array(lines.workers.get_msg())
+    rdf = pd.DataFrame(worker_update, columns=['工人ID', 'Line01', 'Line02', \
+        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
+        'Line09', 'Line10', 'Line11', 'Line12', 'Line01', 'Line02', \
+        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
+        'Line09', 'Line10', 'Line11', 'Line12'])
+    
+    worker_update = np.array(lines.workers.get_msg_2())
+    rdf = pd.DataFrame(worker_update, columns=['工人ID', 'Line01', 'Line02', \
+        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
+        'Line09', 'Line10', 'Line11', 'Line12', 'Line01', 'Line02', \
+        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
+        'Line09', 'Line10', 'Line11', 'Line12'])
+    
+    rdf.to_excel("result/problem_3/worker_update_2.xlsx")
+
 
 if __name__ == "__main__":
-    problem_1()
+    # problem_1()
     # problem_2()
     # import pdb
     # arr = [10, 20, 30]
     # pdb.set_trace()
-    # problem_3()
+    problem_3()
 

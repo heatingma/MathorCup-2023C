@@ -1,4 +1,4 @@
-from utils import ORDERS, ORDER, PRODUCT
+from utils import ORDERS, ORDER, PRODUCT, LINES, WORKER, WORKERS
 import numpy as np
 import pulp
 
