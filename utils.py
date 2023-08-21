@@ -2,7 +2,8 @@ import numpy as np
 import math
 from itertools import permutations
 import copy
-import pdb
+
+
 WORK = np.array([1, 2, 1, 3, 1, 1, 2, 1, 1, 3, 1, 1])
 THEORY = np.array([450, 675, 450, 675, 450, 450, 675, 450, 675, 675, 675, 450])
 PRACTICE = np.array([900, 1125, 900, 1125, 900, 900, 1125, 900, 1125, 1125, 1125, 900])
@@ -44,6 +45,7 @@ class WORKER:
         self.work_line = None
         self.finish_theory = list()
         self.finish_practice = list()
+        self.teacher = None
         self.teach_ratio = [1 for _ in range(len(cap))]
         self.teacher_cap = [0 for _ in range(len(cap))]
         self.data_process()
@@ -63,6 +65,11 @@ class WORKER:
             else:
                 self.finish_theory.append(False)
                 self.finish_practice.append(False)
+        id = self.id
+        if id < 10:
+            self._id = "PE00" + str(id)
+        else:
+            self._id = "PE0" + str(id)
 
     def check_work(self, time):
         if self.next_not_work_time is not None:
@@ -94,6 +101,7 @@ class WORKER:
     
     def del_teacher(self):
         self.teacher.end_teach(self.work_line)
+        self.teacher = None
         
     def update_state(self):
         if self.work == True:
@@ -140,10 +148,10 @@ class WORKER:
         return self.theo[line_id]
     
     def get_msg(self):
-        return np.concatenate([[self.id], self.ori_cap , self.cap])
+        return np.concatenate([[self._id], self.ori_cap , self.cap])
 
     def get_msg_2(self):
-        return np.concatenate([[self.id], self.theo, self.prac])
+        return np.concatenate([[self._id], self.theo, self.prac])
     
     def __repr__(self):
         message = "id, cap, work, finish_theory, finish_practice, "
@@ -310,9 +318,18 @@ class ORDER:
     def get_msg(self):
         self.cal_overtime()
         data = [self.id, self.begin_time, self.finished_time, self.deadline, self.overtime, self.sum_time]
-        for worker in self.workers:
+        workers_data = ""
+        length = len(self.workers)
+        for i, worker in enumerate(self.workers):
             worker: WORKER
-            data.append(worker.id + 1)
+            add_data = worker._id
+            if worker.teacher is not None:
+                add_data += ("(" + worker.teacher._id + ")")
+            if i != length - 1:
+                 add_data += ", "
+            workers_data += add_data
+                
+        data.append(workers_data)
         return data
     
     def __repr__(self):
@@ -353,6 +370,8 @@ class LINE:
         self.cur_deadline = 0
         self.orders_num = 0
         self.cur_workers = None
+        self._id = "LINE" + str(self.id + 1) \
+            if self.id >= 9 else "LINE0" + str(self.id + 1)
     
     def add_order(self, order:ORDER):
         self.finished = False
@@ -580,7 +599,7 @@ class LINES:
         for line in self.lines_dict.values():
             part_msg = line.get_msg()
             for msg in part_msg:
-                msg.insert(0, line.id + 1)
+                msg.insert(0, line._id)
                 data.append(msg)
         return data
     

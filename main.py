@@ -74,7 +74,6 @@ def problem_2():
     rdf.to_excel("result/problem_2/assign_results.xlsx")
 
 
-
 def problem_3():
     workers_data = np.load("processed_data/problem_2/workers.npy", allow_pickle=True)
     workers = get_workers(workers_data)
@@ -93,30 +92,42 @@ def problem_3():
             time += 1 
 
     rdf = pd.DataFrame(lines.get_msg(), columns=['产线', '订单ID', '开始时间', '结束时间', '截止时间', \
-        '超时时间', '总耗时', '工人1', '工人2', '工人3'])
+        '超时时间', '总耗时', '工人'])
     rdf.to_excel("result/problem_3/results_orders.xlsx")
     
-    worker_update = np.array(lines.workers.get_msg())
-    update = worker_update[:, 13:25] - worker_update[:, 1:13]
-    worker_update = np.concatenate([worker_update, update], axis=1)
-    
-    rdf = pd.DataFrame(worker_update, columns=['工人ID', 'Line01', 'Line02', \
-        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
-        'Line09', 'Line10', 'Line11', 'Line12', 'Line01', 'Line02', \
-        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
-        'Line09', 'Line10', 'Line11', 'Line12', 'Line01', 'Line02', \
+    worker_update = np.array(lines.workers.get_msg())    
+    data = worker_update[:, 0:13]
+    rdf = pd.DataFrame(data, columns=['工人ID', 'Line01', 'Line02', \
         'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
         'Line09', 'Line10', 'Line11', 'Line12'])
-    rdf.to_excel("result/problem_3/worker_update.xlsx")
+    rdf.to_excel("result/problem_3/初始技能水平.xlsx")
+
+    data = np.concatenate([np.expand_dims(worker_update[:, 0], axis=1), worker_update[:, 13:25]], axis=1)
+    rdf = pd.DataFrame(data, columns=['工人ID', 'Line01', 'Line02', \
+        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
+        'Line09', 'Line10', 'Line11', 'Line12'])
+    rdf.to_excel("result/problem_3/结束时技能水平.xlsx")
+    
+    data = np.concatenate([np.expand_dims(worker_update[:, 0], axis=1), 
+                           worker_update[:, 13:25].astype(float) - worker_update[:, 1:13].astype(float)], axis=1)
+    rdf = pd.DataFrame(data, columns=['工人ID', 'Line01', 'Line02', \
+        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
+        'Line09', 'Line10', 'Line11', 'Line12'])
+    rdf.to_excel("result/problem_3/技能升级情况.xlsx")
     
     worker_update = np.array(lines.workers.get_msg_2())
-    rdf = pd.DataFrame(worker_update, columns=['工人ID', 'Line01', 'Line02', \
-        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
-        'Line09', 'Line10', 'Line11', 'Line12', 'Line01', 'Line02', \
+    
+    data = worker_update[:, 0:13]
+    rdf = pd.DataFrame(data, columns=['工人ID', 'Line01', 'Line02', \
         'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
         'Line09', 'Line10', 'Line11', 'Line12'])
+    rdf.to_excel("result/problem_3/理论培训时长.xlsx")
     
-    rdf.to_excel("result/problem_3/worker_update_2.xlsx")
+    data = np.concatenate([np.expand_dims(worker_update[:, 0], axis=1), worker_update[:, 13:25]], axis=1)
+    rdf = pd.DataFrame(data, columns=['工人ID', 'Line01', 'Line02', \
+        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
+        'Line09', 'Line10', 'Line11', 'Line12'])
+    rdf.to_excel("result/problem_3/产线培训时长.xlsx")
 
 
 def problem_4():
@@ -147,34 +158,47 @@ def problem_4():
         time += 1 
 
     rdf = pd.DataFrame(lines.get_msg(), columns=['产线', '订单ID', '开始时间', '结束时间', '截止时间', \
-        '超时时间', '总耗时', '工人1', '工人2', '工人3'])
+        '超时时间', '总耗时', '工人'])
     rdf.to_excel("result/problem_4/results_orders.xlsx")
     
     worker_update = np.array(lines.workers.get_msg())
-    update = worker_update[:, 13:25] - worker_update[:, 1:13]
-    worker_update = np.concatenate([worker_update, update], axis=1)
     
-    rdf = pd.DataFrame(worker_update, columns=['工人ID', 'Line01', 'Line02', \
-        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
-        'Line09', 'Line10', 'Line11', 'Line12', 'Line01', 'Line02', \
-        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
-        'Line09', 'Line10', 'Line11', 'Line12', 'Line01', 'Line02', \
+    data = worker_update[:, 0:13]
+    rdf = pd.DataFrame(data, columns=['工人ID', 'Line01', 'Line02', \
         'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
         'Line09', 'Line10', 'Line11', 'Line12'])
-    rdf.to_excel("result/problem_4/worker_update.xlsx")
+    rdf.to_excel("result/problem_4/初始技能水平.xlsx")
+
+    data = np.concatenate([np.expand_dims(worker_update[:, 0], axis=1), worker_update[:, 13:25]], axis=1)
+    rdf = pd.DataFrame(data, columns=['工人ID', 'Line01', 'Line02', \
+        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
+        'Line09', 'Line10', 'Line11', 'Line12'])
+    rdf.to_excel("result/problem_4/结束时技能水平.xlsx")
+    
+    data = np.concatenate([np.expand_dims(worker_update[:, 0], axis=1), 
+                           worker_update[:, 13:25].astype(float) - worker_update[:, 1:13].astype(float)], axis=1)
+    rdf = pd.DataFrame(data, columns=['工人ID', 'Line01', 'Line02', \
+        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
+        'Line09', 'Line10', 'Line11', 'Line12'])
+    rdf.to_excel("result/problem_4/技能升级情况.xlsx")
     
     worker_update = np.array(lines.workers.get_msg_2())
-    rdf = pd.DataFrame(worker_update, columns=['工人ID', 'Line01', 'Line02', \
-        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
-        'Line09', 'Line10', 'Line11', 'Line12', 'Line01', 'Line02', \
+    
+    data = worker_update[:, 0:13]
+    rdf = pd.DataFrame(data, columns=['工人ID', 'Line01', 'Line02', \
         'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
         'Line09', 'Line10', 'Line11', 'Line12'])
+    rdf.to_excel("result/problem_3/理论培训时长.xlsx")
     
-    rdf.to_excel("result/problem_4/worker_update_2.xlsx")
+    data = np.concatenate([np.expand_dims(worker_update[:, 0], axis=1), worker_update[:, 13:25]], axis=1)
+    rdf = pd.DataFrame(data, columns=['工人ID', 'Line01', 'Line02', \
+        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
+        'Line09', 'Line10', 'Line11', 'Line12'])
+    rdf.to_excel("result/problem_3/产线培训时长.xlsx")
 
 if __name__ == "__main__":
     # problem_1()
     # problem_2()
-    # problem_3()
+    problem_3()
     problem_4()
 
