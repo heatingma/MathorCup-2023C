@@ -7,14 +7,27 @@ WORK = np.array([1, 2, 1, 3, 1, 1, 2, 1, 1, 3, 1, 1])
 THEORY = np.array([450, 675, 450, 675, 450, 450, 675, 450, 675, 675, 675, 450])
 PRACTICE = np.array([900, 1125, 900, 1125, 900, 900, 1125, 900, 1125, 1125, 1125, 900])
 EXCELLENT = PRACTICE + 150 * 60
-BADTIME = 100
-EXCELLENT_SCORE = 500
-OUTSTANDING_SCORE = 1000
-THEORY_SCORE = 100
-N_O_SCORE = 0.3
-O_E_SCORE = 0.2
-SCORE = 0.1
-PRIO = 50
+
+
+class CONSTANT:
+    def __init__(self):
+        self.BADTIME = 100
+        self.EXCELLENT_SCORE = 500
+        self.OUTSTANDING_SCORE = 1000
+        self.THEORY_SCORE = 100
+        self.N_O_SCORE = 0.3
+        self.O_E_SCORE = 0.2
+        self.SCORE = 0.1
+        self.PRIO = 50
+        
+    def important_score(self):
+        self.BADTIME /= 10
+        
+    def lower_score(self):
+        self.BADTIME *= 10
+
+
+constant = CONSTANT()
 
 ###############################################
 #                 Utils Class                 #
@@ -92,23 +105,23 @@ class WORKER:
         ept_prac = self.prac[line_id] + prac_time
         if self.cap[line_id] == 0.8:
             if ept_prac >= EXCELLENT[line_id]:
-                return prac_time*O_E_SCORE + EXCELLENT_SCORE
+                return prac_time*constant.O_E_SCORE + constant.EXCELLENT_SCORE
             else:
-                return prac_time*O_E_SCORE
+                return prac_time*constant.O_E_SCORE
         else:
             if ept_prac >= PRACTICE[line_id]:
-                return prac_time*N_O_SCORE + OUTSTANDING_SCORE
+                return prac_time*constant.N_O_SCORE + constant.OUTSTANDING_SCORE
             else:
-                return prac_time*N_O_SCORE
+                return prac_time*constant.N_O_SCORE
             
     def ept_theo_improve(self, theo_time, line_id):
         if self.theo[line_id] == True:
             return 0
         ept_prac = self.theo[line_id] + theo_time
         if ept_prac >= THEORY[line_id]:
-            return theo_time*SCORE + THEORY_SCORE
+            return theo_time*constant.SCORE + constant.THEORY_SCORE
         else:
-            return theo_time*SCORE   
+            return theo_time*constant.SCORE   
                     
     def practice(self, line_id):
         self.prac[line_id] += 1
@@ -153,6 +166,10 @@ class WORKERS:
                 free.append(worker)
         return free
     
+    def del_worker(self, ids:list):
+        for id in ids:
+            self.workers_dict.pop(id)
+    
     def find_workers(self, work_ids):
         workers_list = list()
         for worker in self.workers_dict.values():
@@ -160,6 +177,12 @@ class WORKERS:
             if worker.id in work_ids:
                 workers_list.append(worker)
         return workers_list
+    
+    def get_new_worker(self, num):
+        for i in range(num):
+            cap = [0 for _ in range(12)]
+            worker = WORKER(int(i) + 21, cap)
+            self.workers_dict[worker.id] = worker
     
     def get_msg(self):
         data = list()
@@ -459,7 +482,7 @@ class LINES:
             line: LINE
             line.check_busy(time)
             if line.busy == False and line.finished == False:
-                self.times[line.id] += PRIO
+                self.times[line.id] += constant.PRIO
                 self.get_lines_priority()
             if line.finished == False:
                 self.finished = False
@@ -506,7 +529,7 @@ class LINES:
                 n_workers[i].add_teacher(teachers[i], line_id)
         copy_order = copy.deepcopy(order)
         copy_order.change_workers(choose)
-        bad_time = (min_sum_time - copy_order.sum_time) * BADTIME
+        bad_time = (min_sum_time - copy_order.sum_time) * constant.BADTIME
         ipv_score = 0
         for worker in choose:
             worker: WORKER
@@ -689,3 +712,7 @@ def get_lines(workers:WORKERS):
         data = np.load(dir_path.format(i+1), allow_pickle=True)
         lines.add_line(get_line(data, i))
     return lines   
+
+
+
+    

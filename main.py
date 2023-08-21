@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from utils import get_orders, get_lines, get_workers
+from utils import get_orders, get_lines, get_workers, constant
 from models import dmsf, msf, derf, erf, meonf, lip
 
 
@@ -119,11 +119,62 @@ def problem_3():
     rdf.to_excel("result/problem_3/worker_update_2.xlsx")
 
 
+def problem_4():
+    workers_data = np.load("processed_data/problem_2/workers.npy", allow_pickle=True)
+    workers = get_workers(workers_data)
+    lines = get_lines(workers)
+    time = 0
+    assign = pd.read_excel("result/problem_2/assign_results.xlsx", usecols=[3, 5, 7])
+    assign = np.array(assign).astype(int)
+    while lines.finished == False:  
+        if time == 0:
+            lines.update_state(time)
+            lines.time_zero(assign)
+            time += 1
+            continue
+        if time == 2250:
+            constant.important_score()
+        elif time == 4500:
+            constant.lower_score()
+        elif time == 6750:
+            lines.workers.del_worker([i+1 for i in range(10)])
+            lines.workers.get_new_worker(10)
+            constant.important_score()
+        elif time == 13500:
+            constant.lower_score()
+        lines.update_state(time)
+        lines.next_orders(time)
+        time += 1 
+
+    rdf = pd.DataFrame(lines.get_msg(), columns=['产线', '订单ID', '开始时间', '结束时间', '截止时间', \
+        '超时时间', '总耗时', '工人1', '工人2', '工人3'])
+    rdf.to_excel("result/problem_4/results_orders.xlsx")
+    
+    worker_update = np.array(lines.workers.get_msg())
+    update = worker_update[:, 13:25] - worker_update[:, 1:13]
+    worker_update = np.concatenate([worker_update, update], axis=1)
+    
+    rdf = pd.DataFrame(worker_update, columns=['工人ID', 'Line01', 'Line02', \
+        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
+        'Line09', 'Line10', 'Line11', 'Line12', 'Line01', 'Line02', \
+        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
+        'Line09', 'Line10', 'Line11', 'Line12', 'Line01', 'Line02', \
+        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
+        'Line09', 'Line10', 'Line11', 'Line12'])
+    rdf.to_excel("result/problem_4/worker_update.xlsx")
+    
+    worker_update = np.array(lines.workers.get_msg_2())
+    rdf = pd.DataFrame(worker_update, columns=['工人ID', 'Line01', 'Line02', \
+        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
+        'Line09', 'Line10', 'Line11', 'Line12', 'Line01', 'Line02', \
+        'Line03', 'Line04', 'Line05', 'Line06', 'Line07', 'Line08', \
+        'Line09', 'Line10', 'Line11', 'Line12'])
+    
+    rdf.to_excel("result/problem_4/worker_update_2.xlsx")
+
 if __name__ == "__main__":
     # problem_1()
     # problem_2()
-    # import pdb
-    # arr = [10, 20, 30]
-    # pdb.set_trace()
-    problem_3()
+    # problem_3()
+    problem_4()
 
