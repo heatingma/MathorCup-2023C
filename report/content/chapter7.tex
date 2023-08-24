@@ -1,0 +1,132 @@
+\section{问题二的模型建立与求解}
+
+\subsection{产线特性分析}
+对于每条产线，我们都统计了其在所有订单所需总时长之和（假设所有工人的技能水平均为E），并将其与该产线所有订单的最晚截止时间作比较，结果如下表：
+\begin{table}[htbp]
+    \caption{产线特性分析}
+    \label{tab:workline} 
+    \centering
+    \begin{tabular}{@{\hspace{10pt}}cccc@{\hspace{10pt}}}
+        \toprule[1.5pt]
+        产线 & 所有订单总耗时 & 最晚截止时间 & 与最晚截止时间的差值\\
+        \midrule[1pt]
+        line1  & 670 & 18000 &  -17330 \\
+        line2  & 27897 & 18000 & 9897          \\
+        line3  & 26992 & 18000 & 8992         \\
+        line4  & 33035 & 18000 & 15035         \\
+        line5  & 7159 & 18000 & -10841      \\
+        line6  & 3778 & 18000 &  -14222  \\
+        line7  & 34961 & 18000 &  16961 \\
+        line8  & 11687  & 13000 &  -1323\\
+        line9  & 4400   & 18000 & -13600 \\
+        line10 & 35251 &  18000 &     17251\\
+        line11 & 15200  & 18000 &     -2800 \\
+        line12 & 5943   & 18000 & -12057\\ 
+        \bottomrule[1.5pt]
+    \end{tabular}
+\end{table}
+
+对于这11条产线，可以分为以下三种：
+\begin{itemize}[left=1em]
+    \item \textbf{繁忙型产线} ：与最晚截止时间的差值接近或超过10000（如产线2,3,4,7,10），这意味着平均有几十个订单一定会超时，其降低分配工人的生产能力对超时总时间的影响是巨大的。且对于这类产线而言，总时长越长意味着全程的压力越大，因此应该在整个过程中分配尽量多技能水平为E的工人且不发生改变。
+    \item \textbf{空闲型产线} ：与最晚截止时间差值很小，小于 -10000 （如产线1，5，6，9，12）。对于这类产线，进一步分析可以发现其在每个截止时间内所有订单总耗时之和均不会超时，意味着该产线的工人长期处于空闲阶。对于这类产线总时长越短表示全程的压力越小。因此可以分配能力为O的工人且适合进行产线培训（针对第三问）。
+    \item \textbf{周期型产线} ：总时长略小于最晚截止时间（在- 5000以内）（产线8,11）。这类产线存在不同截止日期内订单的超时情况不同，主要体现为最终不超时但局部超时。对于这些产线，在不同的时间段需要调整其工人分配策略，如在其局部超时的时候，需要为其尽量分配能力为E的工人。
+\end{itemize}
+
+
+易知，这三种类型的产线切换不同能力等级的工人产生的影响大小为：繁忙型产线>周期型产线>空闲型产线。可以看到，他们的所有订单总耗时存在明显的差别。
+
+
+\subsection{模型建立}
+\subsubsection{线性0-1规划模型}
+\textbf{确定决策变量}：问题需要求得最优的员工分配策略，因此本模型的决策变量应为每位员工分配产线的情况。引入0-1变量表示如下：
+\begin{equation}
+    \label{eq:01}
+    x_{ij}=
+    \begin{cases}
+        1 & \text{工人}i\text{分配到产线}j \\
+        0 & \text{工人}i\text{未分配到产线}j
+    \end{cases}
+\end{equation}
+
+\textbf{确定优化目标}：模型需要尽量将技能水平高的员工分配到生产压力大的产线。令$T_j$表示产线$j$生产完毕所有订单所需的总时长，则$\frac{T_j}{\sum_j T_j}$定量衡量了每条产线的生产压力大小。优化目标为：
+\begin{equation}
+    \label{eq:goal}
+    \max \sum_{ij} \frac{T_j}{\sum_j T_j} m_{ij}x_{ij}
+\end{equation}
+
+\textbf{确定约束条件}：由每条产线的工位数限制，有
+\begin{equation}
+    \label{eq:i}
+    \sum_i x_{ij} \leq E_j ,\quad \forall j
+\end{equation}
+
+因每位员工一次只能分配到一条产线工作，故有
+\begin{equation}
+    \label{eq:j}
+    \sum_j x_{ij} \leq 1 ,\quad \forall i
+\end{equation}
+
+综上，员工分配线性规划模型为：
+\[
+    \max \sum_{ij} \frac{T_j}{\sum_j T_j} m_{ij}x_{ij} 
+\]
+\[
+    s.t.
+    \begin{cases}
+        \sum_i x_{ij} \leq E_j ,\quad \forall j \\
+        \sum_j x_{ij} \leq 1 ,\quad \forall i
+    \end{cases}
+\]
+
+\subsection{模型求解}
+模型建立后，编写python程序，调用PuLP库进行求解，得到分配策略如\cref{tab:workers}所示。
+
+\begin{table}[htbp]
+    \caption{问题二员工分配策略}
+    \label{tab:workers} 
+    \centering
+    \begin{tabular}{@{\hspace{40pt}}c@{\hspace{80pt}}c@{\hspace{40pt}}}
+        \toprule[1.5pt]
+        产线 & 分配员工 \\
+        \midrule[1pt]
+        line1  & PE002    \\
+        line2  & PE009、PE011          \\
+        line3  & PE006          \\
+        line4  & PE003、PE012、PE015         \\
+        line5  & PE016       \\
+        line6  & PE018      \\
+        line7  & PE005、PE007   \\
+        line8  & PE004  \\
+        line9  & PE017      \\
+        line10 & PE001、PE008、PE010     \\
+        line11 & PE014        \\
+        line12 & PE013      \\
+        \bottomrule[1.5pt]
+    \end{tabular}
+\end{table}
+
+\subsection{模型优化}
+
+考虑到7.1节中分析的产线情况，对于产线8和产线11，需要根据其局部时间段内的繁忙程度进行工人分配策略的调整。
+
+因此在确定了上述员工分配表后，我们固定其他产线的工人分配结果，对产线8、11在不同截止日期前的分配结果做第二次规划，模型如下：
+
+\[
+    \max \sum_{ij} \frac{T_j^{\prime}}{\sum_j T_j^{\prime}}  m_{ij}x_{ij} \quad \quad j = 8,11
+\]
+\[
+    s.t.
+    \begin{cases}
+        \sum_i x_{ij} \leq E_j ,\quad  j  = 8, 11\\
+        \sum_j x_{ij} \leq 1 ,\quad \forall i \\ 
+        x_{ij} = y_{ij}, \quad j \neq 8, 11
+    \end{cases}
+\]
+
+其中$T_j^{\prime}$表示每同一个截止日期下的所需订单总时长，$y_{ij}$表示上述分配结果。
+
+对每一个截止时间进行求解，得到的结果均与原分配策略相同，证明不需要在中途改变员工分配情况。
+
+\subsection{最终结果与分析}
+根据\cref{tab:workers}将员工分配到对应产线进行生产，采用问题一的meonf算法得到最终的订单分配结果，结果与问题一相同，如\cref{tab:problem1}所示。最终超时分钟数之和为2125455。

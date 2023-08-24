@@ -1,0 +1,29 @@
+\section{数据预处理}
+
+考虑到本题数据的特殊性，我们需要讨论产线、订单、产品、员工之间的关系，因此在数据处理前我们设计了LINE、ORDER、PRODUCT、WORKER四个基本类，用来记录和管理本题的数据，下表是我们对这些类的设计。
+
+\begin{table}[!ht]
+    \caption{类的设计详细介绍}
+    \centering
+    \begin{tabular}{c@{\hspace{20pt}}c@{\hspace{20pt}}c@{\hspace{20pt}}c}
+    \toprule[1.5pt]
+    符号     & 名称       & 内容         \\ \hline 
+    LINE     & 产线   & 工作订单，等待队列，阻塞队列等   \\ \hline
+    ORDER    & 订单   & 产品队列，分配员工，截止时间等   \\ \hline
+    PRODUCT  & 产品   & 标准工时，产品数量，分配员工，产线名称等  \\ \hline
+    WORKER   & 员工   & 技能水平，训练时长，培训情况等   \\ 
+    \bottomrule[1.5pt]
+    \end{tabular}
+\end{table}
+
+
+
+
+
+
+
+
+
+
+
+

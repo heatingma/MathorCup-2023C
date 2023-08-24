@@ -1,0 +1,85 @@
+%\documentclass{cumcmthesis}
+\documentclass[withoutpreface,bwprint]{cumcmthesis} %去掉封面与编号页，电子版提交的时候使用。
+\usepackage{graphicx} 
+\usepackage{cases}
+\usepackage{longtable}
+\usepackage{float}
+%\usepackage{subfigure}
+%\usepackage{subfig}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{threeparttable}
+\usepackage{verbatim}
+\usepackage[framemethod=TikZ]{mdframed}
+\usepackage{url}   % 网页链接
+\usepackage{subcaption} % 子标题
+\usepackage{makecell}
+\usepackage{cleveref}
+\usepackage{xcolor}
+\usepackage{pgfplotstable} %csv2latex
+\usepackage{longtable}
+
+\definecolor{comment_color}{RGB}{85, 139, 78}
+\definecolor{string_color}{RGB}{206, 145, 108}
+\definecolor{keyword_color}{RGB}{155, 89, 182}
+\definecolor{number_color}{RGB}{136, 198, 190}
+\definecolor{constant_color}{RGB}{10, 100, 255}
+\usepackage{accsupp}
+\newcommand{\emptyaccsupp}[1]{\BeginAccSupp{ActualText={}}#1\EndAccSupp{}}
+\usepackage{listings}
+\lstset{
+    language=python,
+    linewidth=0.9\linewidth,
+    commentstyle=\color{comment_color},
+    keywordstyle=\color{keyword_color},
+    stringstyle=\color{string_color},
+    numbers=left,
+    numberstyle=\tiny\color{number_color},
+    emphstyle=\color{constant_color}
+    numbersep=5pt,
+    frame=single,
+    framerule=0pt,
+    escapeinside=@@,
+    emptylines=1,
+    xleftmargin=3em,
+    tabsize=4,
+    gobble=0,
+    morekeywords={import, numpy},
+    emph={True, False, None, ,BASIC,SMOKE,DRINK,WINE,MEALS,MEAL,FOODS,FOOD,ACTIVITY,HEALTH,DISEASE,BODY,EVALUATE,  STATISTICS, Person, Persons},
+    emphstyle=[1]{\color{constant_color}},
+    morekeywords={import,def,break,case,catch,classdef,continue,else,elseif,end,for,function,global,if,otherwise,parfor,persistent,return,spmd,switch,try,while},
+}
+
+\title{双目标多层贪心下的生产员工培训与产线分配模型}
+\tihao{C}
+\baominghao{报名号}
+\schoolname{上海交通大学}
+\membera{麻家乐}
+\memberb{黄天浩}
+\memberc{刘  灿}
+\supervisor{高晓沨}
+\yearinput{2023}
+\monthinput{9}
+\dayinput{xx}
+
+\begin{document}
+
+    \maketitle
+    \topskip
+    \topmargin
+	\renewcommand{\abstractname}{\Large 摘要\\}
+	
+	\input{content/abstract}
+	\input{content/chapter1}
+	\input{content/chapter2}
+	\input{content/chapter3}
+    \input{content/chapter4}
+    \input{content/chapter5}	
+    \input{content/chapter6}
+    \input{content/chapter7}
+    \input{content/chapter8}
+    \input{content/chapter9}
+	\input{content/chapter10}	
+    \input{content/reference}
+    \input{content/appendix}      
+\end{document}
