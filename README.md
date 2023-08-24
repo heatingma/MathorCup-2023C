@@ -33,6 +33,6 @@
 ##### 模型概览
 
 <div><center>
-<img src=report/pics/p4.png width=70% height=70% >
+<img src=report/pics/p4.png width=100% height=100% >
 <br>
 </center></div>
